@@ -1,5 +1,4 @@
-library(actel)
-library(RSP)
+#Load up all the packages we need
 library(rgdal)
 library(raster)
 library(ggplot2)
@@ -10,52 +9,63 @@ library(patchwork)
 library(sf)
 library(ggsn)
 library(plotrix)
-load("Input/Functions.RData") # Load custom function: calcAreas()
+library(dplyr)
 
-#-------------------------#
-# Pre-processing the data #
-#-------------------------#
+#------------------------------------- #
+# Pre-processing the data for Figure 1 #
+#--------------------------------------#
+
+#Let's load in the data
 setwd("~/GitHub/Water_Chemistry")
-water <- read.csv("Input/Water.Chemistry.csv")
+water <- read.csv("Input/Locations.csv")
 head(water)
 
-# Load environmental stations
-df.water <- read.csv("Input/Water.Chemistry.csv")
-df.water <- subset(df.env, Station != "Baryulgil") # Station is outside study area!
-df.water$Site <- c("CT1","CT2", "CT3", "CT4", "WL")
-df.water$Site <- factor(df.env$Station, levels = c("CT1", "CT2", "CT3", "CT4", "WL"))
+# Reorder plotting order
+water$Reach <- factor(water$Reach, levels = c("Estuary - Lower Clarence", "Orara", "Mid - Clarence", "Mann - Nymboida", "Upper Clarence"))
 
-# Load Clarence River shapefile:
-shp <- st_read("Input/shapefile/Clarence_total.shp") # Use sf package (keep projection!)
+# Load catchment shapefile:
+catch <- st_read("Input/shapefile/MultiAttributeClarence.shp") # Use sf package (keep projection!)
+head(catch)
 
-#-------------------------#
-#     Creating Figure 1   #
-#-------------------------#
+catch[catch$LandCode == "f5k",]
+catchrivers <- catch[catch$LandCode == "f5k",]
+class(catchrivers)
+catchrivers
 
-# Map receivers in the Clarence
-plot1 <- ggplot() + theme_bw() +
-  geom_sf(data = shp,  
-    fill = 'gray60', alpha = 0.4,
-    size = 0.07, colour = "black") +
-  geom_point(data = spatial, aes(x = Longitude, y = Latitude, fill = Array), pch = 21, stroke = 0.2) +
-  coord_sf(xlim = c(152.45, 153.4), ylim = c(-29.85, -29.3), expand = FALSE) +
-  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
-  geom_text(data = df.env, aes(x = Long, y =  Lat, 
-                          label = Station, colour = Type), 
-                          check_overlap = FALSE, size = 2.8, fontface = "bold",
-                          hjust = -0.2, vjust = 0,
-                          show.legend = FALSE) +
-  scale_colour_manual(values = cmocean('haline')(3)[1:2]) +
-  labs(x = "Longitude", y = "Latitude", fill = "Acoustic array",
-    colour = "Station type") +
-  guides(fill = guide_legend(ncol = 1)) +
-  ggsn::scalebar(x.min = 153, x.max = 153.2, y.min = -29.75, y.max = -29.7, transform = TRUE, 
-    box.fill = c("black", "white"), box.color = "black", st.color = "black",
-    dist_unit = "km", dist = 10, st.dist = 0.3, st.size = 3, height = 0.15, border.size = 0.3)
+
+catch[catch$LandCode == "f5b",]
+lake <- catch[catch$LandCode == "f5b",]
+class(lake)
+lake
+
+catch[catch$LandCode == "f5a",]
+sriv <- catch[catch$LandCode == "f5a",]
+class(sriv)
+sriv
+
+#-------------------------------------------------------------#
+#                   Creating Figure 1                         #         
+#-------------------------------------------------------------#
+
+# Map water sampling locations in the Clarence - Figure 1A
 sf_use_s2(FALSE)
-plot1
+plotA <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = water, aes(x = Long, y = Lat, fill = Reach), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) +
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  labs(x = "Longitude", y = "Latitude", fill = "Reach",
+       colour = "Reach") +
+  guides(fill = guide_legend(ncol = 1)) +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+plotA
 
-library(ozmaps) # create australian map with clarence location
+library(ozmaps) # create Australian map with clarence location
 library(cowplot) # plot both maps on top of each other
 
 #map of Australia
@@ -80,325 +90,765 @@ m2 <- m1 + theme_void() +
   annotate("rect", xmin = 152.45 , xmax = 153.4 , ymin = -29.85 , ymax = -29.3 , fill = NA, color = "red")
 m2 #this is the Australia map with a rectangle around the area of interest
 
-# to merge the Receivers map with the Australia map
+# to merge the site map with the Australia map
 m3 <- ggdraw() +
-  draw_plot(plot1) +
-  draw_plot(m2, x = 0.0475, y = 0.1665, width = 0.26, height = 0.26)
+  draw_plot(plotA) +
+  draw_plot(m2, x = 0.4315, y = 0.7655, width = 0.22, height = 0.22) + plot_annotation(plot_annotation(title = 'a'))
 m3
 
 #To save a copy of the map
-ggsave("Output/Map_clarence.png", width = 20, height = 13, units = 'cm')
+ggsave("Output/Map_clarence_watersamples.png", width = 20, height = 13, units = 'cm')
+
+#--------------------------------------------------------------------------#
+#                               Geology                                    #
+# -------------------------------------------------------------------------#
+
+#Let's load up the geology of the area
+geo <- st_read("Input/shapefile/rock_units2.shp", stringsAsFactors = TRUE) # Use sf package (keep projection!)
+head(geo)
+class(geo)
+str(geo)
+
+#we're going to map 3 different layers (Dominant_L, NSW_CODE and Age_Medial)
+#Remember to change the name of the layer in all below (ie: NSW_CODE), as well and the the total colour #s (ie: 239 vs 38)
+
+#First we need to find how many "level" are in each "layer" 
+class(geo$Province)
+str(geo$Province)
+levels(geo$Province)
+unique(geo$Province)
+
+#Now need to make it a factor & see how long it is
+geo$Province<- as.factor(geo$Province)
+summary(geo$Province)
+length(levels(geo$Province))
+
+#Overlapping geology and sites (Province)
+sf_use_s2(FALSE)
+geoplot <- ggplot() + theme_bw() +
+  geom_sf(data = geo, aes(fill = as.factor(geo$Province)), alpha = 0.5, size = 0.3, show.legend = "fill") +
+  #geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  #geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  #geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = water, aes(x = Long, y = Lat), size = 1.5, pch = 21, stroke = 0.2, colour = 'black', fill = 'black') +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) +
+  scale_fill_manual(values = rainbow(5)[1:5]) +
+  scale_colour_manual(values = rainbow(5)[1:5]) +
+  labs(x = "Longitude", y = "Latitude",
+       colour = "Province", fill = "Province") +
+  guides(fill = guide_legend(ncol = 1), guide_legend(title = "Province")) +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3) + plot_annotation(title = 'b')
+geoplot
+
+ggsave("Output/Map_clarence_Province.png", width = 20, height = 13, units = 'cm')
+
+#Merging sampling locations (1a) and geology (1b)
+m3 + geoplot + plot_annotation(subtitle = 'a') + (plot_layout(guides = 'collect'))
+
+ggsave("Output/Map_clarence_Figure1COMPLETE.png", width = 30, height = 23, units = 'cm')
+
+#-------------------------------------------------------------------------#
+##                    Let's do some actual stats                         ##
+#-------------------------------------------------------------------------#
+
+setwd("~/GitHub/Water_Chemistry")
+element <- read.csv("Input/WaterChem.Results.csv")
+element
+
+#Lets clean up the data
+#removes "na" columns
+new_element <- element[-c(63, 68, 78), ]
+new_element
+
+#changes columns to numeric
+i <- c(4:22)
+new_element[ , i] <- apply(new_element[ , i], 2,            # Specify own function within apply
+                    function(x) as.numeric(as.character(x)))
+sapply(new_element, class)
 
 
-#------------------------------#
-# Use actel to filter the data #
-#------------------------------#
-setwd("Input")
-exp.results <- explore(tz = 'Australia/Sydney', report = TRUE, GUI = 'never')
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-n
-save(exp.results, file = "exp.results.RData") # Save filtered detections
-setwd("..")
+#Now lets get the means for all our variables by reach 
+------------------------------------------------------
+#Basic Water Chemistry
 
-#--------------------------------------#
-# Reconstruct in-water tracks with RSP #
-#--------------------------------------#
+#Temperature (Mean & SD)
+aggregate(new_element$Temperature, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Temperature, list(new_element$Reach), FUN=sd)
 
-# Load data processed previously with actel
-load("Input/exp.results.RData") 
+#pH (Mean & SD)
+aggregate(new_element$pH, list(new_element$Reach), FUN=mean)
+aggregate(new_element$pH, list(new_element$Reach), FUN=sd)
 
-# Import shapefiles
-water <- loadShape(path = "Input/shapefile/", shape = "Clarence.shp", size = 0.0005, buffer = 0.05)
+#DO % (Mean & SD)
+aggregate(new_element$DO.., list(new_element$Reach), FUN=mean)
+aggregate(new_element$DO.., list(new_element$Reach), FUN=sd)
 
-# Check receivers are inside the water
-plotRaster(input = exp.results, base.raster = water, 
-  coord.x = "Longitude", coord.y = "Latitude") # Looks good (on-land receivers = no detections!)
+#DO (mg/L) (Mean & SD)
+aggregate(new_element$DO.mg.L, list(new_element$Reach), FUN=mean)
+aggregate(new_element$DO.mg.L, list(new_element$Reach), FUN=sd)
 
-# Create a transition layer with 8 directions
-tl <- transitionLayer(x = water, directions = 8)
+#Conductivity (Mean & SD)
+aggregate(new_element$Conductivity..mS.cm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Conductivity..mS.cm., list(new_element$Reach), FUN=sd)
 
-# Run RSP analysis
-rsp.run <- runRSP(input = exp.results, t.layer = tl, 
-  coord.x = "Longitude", coord.y = "Latitude",  
-  verbose = TRUE, 
-  max.time = 24) # Break tracks every 24-h
+#Turbidity (Mean & SD)
+aggregate(new_element$Turbidity..NTU., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Turbidity..NTU., list(new_element$Reach), FUN=sd)
 
-# Check RSP performance 
-tracks <- do.call(rbind.data.frame, rsp.run$tracks)
-# Add transmitter names
-aux.names <- NULL
-for (i in 1:length(rsp.run$tracks)) {
-  aux <- rsp.run$tracks[[i]]
-  aux.names <- c(aux.names, rep(names(rsp.run$tracks[i]), nrow(aux)))
-}
-tracks$Transmitter <- aux.names
-# Check track data
-head(tracks)
-summary(as.numeric(tracks$Timespan)) # Maximum of 75-days track!
+#Now for Elemental means & SDs
 
-# Plot single track of one Transmitter: longer track
-tracks[which(tracks$Timespan == max(tracks$Timespan))] # Which is the longest track?
-plotTracks(input = rsp.run, base.raster = water, type = 'both',
-  tag = "A69-1602-54094", track = 19) # Same location? Died? Doesn't look like...
+#Ba ppm (Mean & SD)
+aggregate(new_element$Ba..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Ba..ppm., list(new_element$Reach), FUN=sd)
 
-tracks.ind <- tracks %>%
-  group_by(Transmitter) %>%
-  summarise(Tracks = n(), Total.time.days = round(sum(as.numeric(Timespan)) / 24, 0))
+#Ca ppm (Mean & SD)
+aggregate(new_element$Ca..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Ca..ppm., list(new_element$Reach), FUN=sd)
 
-# Calculate distances travelled by sex (in km)
-df.dist <- getDistances(input = rsp.run)
-df.dist.km <- df.dist %>%
-  filter(Loc.type == "RSP") %>% # Calculate distances with RSP positions!
-  group_by(Group, Animal.tracked) %>%
-  summarise(Distance = sum(Dist.travel) / 1000) # Convert from m to km
-df.dist.km$Days <- tracks.ind$Total.time.days[match(df.dist.km$Animal.tracked, tracks.ind$Transmitter)]
+#Fe ppm (Mean & SD)
+aggregate(new_element$Fe..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Fe..ppm., list(new_element$Reach), FUN=sd)
 
-# Some basic stats... 
-# Average/max/min of distance travelled by all tagged fish
-mean(df.dist.km$Distance)
-sd(df.dist.km$Distance)
-max(df.dist.km$Distance)
-min(df.dist.km$Distance)
+#Mn ppm (Mean & SD)
+aggregate(new_element$Mn..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Mn..ppm., list(new_element$Reach), FUN=sd)
 
-# Averages of distance travelled by group (M vs F)
-summarize(df.dist.km,
-          mean_distance = mean(Distance),
-          sd_distance = sd(Distance))
+#Mg ppm (Mean & SD)
+aggregate(new_element$Mg..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Mg..ppm., list(new_element$Reach), FUN=sd)
 
-# Convert list of RSP locations to data.frame 
-rsp.locs <- do.call(rbind.data.frame, rsp.run$detections)
+#Pb ppm (Mean & SD)
+aggregate(new_element$Pb..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Pb..ppm., list(new_element$Reach), FUN=sd)
 
-# Check RSP locations are inside the water
-df.water <- as.data.frame(water, xy = TRUE)
-df.water <- df.water[-which(is.na(df.water$layer))]
-plot.rsp <- ggplot() + theme_bw() +
-  geom_raster(data = subset(df.water, is.na(layer)), 
-              aes(x = x, y = y), fill = "gray", alpha = 0.7) +
-  geom_point(data = rsp.locs, aes(x = Longitude, y = Latitude, group = Track), 
-             size = 0.3) +
-  coord_cartesian(xlim = c(152.45, 153.45), ylim = c(-29.85, -29.3), expand = FALSE)
-plot.rsp
-# Locations look great (all inside water following river shape!)
+#Se ppm (Mean & SD)
+aggregate(new_element$Se..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Se..ppm., list(new_element$Reach), FUN=sd)
 
-# Save RSP output
-save(rsp.run, file = "Input/rsp.results.RData") # Save filtered detections
+#Sr ppm (Mean & SD)
+aggregate(new_element$Sr..ppm., list(new_element$Reach), FUN=mean)
+aggregate(new_element$Sr..ppm., list(new_element$Reach), FUN=sd)
 
-# Load RSP output
-load("Input/rsp.results.RData")
+#Ba/Ca ratio (Mean & SD)
+aggregate(new_element$Ba.Ca, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Ba.Ca, list(new_element$Reach), FUN=sd)
 
-#--------------------------#
-##   STATISTICAL TESTS    ##
-#--------------------------#
+#Sr/Ca ppm (Mean & SD)
+aggregate(new_element$Sr.Ca, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Sr.Ca, list(new_element$Reach), FUN=sd)
 
-#BASIC STATS
+#Sr 86/87 (Mean & SD)
+aggregate(new_element$Sr87.86, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Sr87.86, list(new_element$Reach), FUN=sd)
 
-#count of number of detections at each section
-rsp.locs %>% count(Section)
-#count of number of detections at each receiver
-rsp.locs %>% count(Receiver)
 
-# Compare distances traveled by sex 
-t.test(df.dist.km$Distance[df.dist.km$Group == "F"],
-  df.dist.km$Distance[df.dist.km$Group == "M"]) # No statistical difference!
+#testshit
+library(dplyr)
+group_by(new_element, Reach) %>%
+  summarise(
+    count = n(),
+    mean = mean(Temperature, na.rm = TRUE),
+    sd = sd(Temperature, na.rm = TRUE),
+    median = median(Temperature, na.rm = TRUE),
+    IQR = IQR(Temperature, na.rm = TRUE)
+  )
 
-# Compare distances traveled and tracking time
-cor.test(df.dist.km$Distance, df.dist.km$Days, method = 'pearson') # Not correlated!
+#Now let's see if the reaches are different!
+#Kruskal-Wallis test - non-parametric one-way ANOVA test
+#Pair-wise Wilcoxon Test
 
-# Compare distances traveled and length
-df.bios.dist <- read.csv("Input/bios.dist.csv")
-head(df.bios.dist)
-df.bios.dist$Distance <- df.dist.km$Distance[match(df.bios.dist$Serial_nr, df.dist.km$Animal.tracked)]
+# no need for a p-value adjustment because there is no repeated sampling (?)
+# exact = false fixes the "ties" issue and yields the same results.
 
-#length
-cor.test(df.bios.dist$Distance, df.bios.dist$Length_mm, method = 'pearson')
-#weight
-cor.test(df.bios.dist$Distance, df.bios.dist$Weight_kg, method = 'pearson')
+#Temperature
+kruskal.test(Temperature ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$Temperature, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#pH
+kruskal.test(pH ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$pH, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Do %
+kruskal.test(DO.. ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$DO.., new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#DO (mg/L)
+kruskal.test(DO.mg.L ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$DO.mg.L, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Conductivity
+kruskal.test(Conductivity..mS.cm. ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$Conductivity..mS.cm., new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Turbidity
+kruskal.test(Turbidity..NTU. ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$Turbidity..NTU., new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Ba
+kruskal.test(Ba..ppm. ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$Ba..ppm, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Ca
+kruskal.test(Ca..ppm. ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Ca..ppm, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Fe
+kruskal.test(Fe..ppm. ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Fe..ppm, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Mn
+kruskal.test(Mn..ppm. ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Mn..ppm, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Mg
+kruskal.test(Mg..ppm. ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Mg..ppm, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Pb
+#kruskal.test(Pb..ppm. ~ Reach, data = new_element)
+#pairwise.wilcox.test(new_element$Pb..ppm, new_element$Reach,
+#                    p.adjust.method = "none", exact = FALSE)
+#Se
+#kruskal.test(Se..ppm. ~ Reach, data = new_element)
+#pairwise.wilcox.test(new_element$Se..ppm, new_element$Reach,
+#                     p.adjust.method = "none", exact = FALSE)
+#Sr
+kruskal.test(Sr..ppm. ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Sr..ppm, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
 
-#compare M vs F in length & weight
-t.test(df.bios.dist$Length_mm[df.bios.dist$Group == "F"],
-       df.bios.dist$Length_mm[df.bios.dist$Group == "M"]) #statistical difference!
-t.test(df.bios.dist$Weight_kg[df.bios.dist$Group == "F"],
-       df.bios.dist$Weight_kg[df.bios.dist$Group == "M"]) #statistical difference!
+#Sr8687
+kruskal.test(Sr87.86 ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Sr87.86, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
 
-# Plot distances traveled by sex
-plot1 <- ggplot() + theme_bw() +
-  geom_col(data = subset(df.dist.km, Group == "F"), 
-    aes(x = Distance, y = Animal.tracked), fill = 'dodgerblue') +
-  labs(x = "Distance travelled (km)", y = "Transmitter", title = "Female") +
-  coord_cartesian(xlim = c(0, 3100), ylim = c(0.3, 16.7), expand = FALSE) +
-  annotate("text", x = df.dist.km$Distance[df.dist.km$Group == "F"] + 200,
-    y = 1:16,
-    label = df.dist.km$Days[df.dist.km$Group == "F"], size = 3)
-plot2 <- ggplot() + theme_bw() +
-  geom_col(data = subset(df.dist.km, Group == "M"), 
-    aes(x = Distance, y = Animal.tracked), fill = 'dodgerblue') +
-  labs(x = "Distance travelled (km)", y = "", title = "Male") +
-  coord_cartesian(xlim = c(0, 3100), ylim = c(0.3, 14.7), expand = FALSE) +
-  annotate("text", x = df.dist.km$Distance[df.dist.km$Group == "M"] + 200,
-    y = 1:14,
-    label = df.dist.km$Days[df.dist.km$Group == "M"], size = 3)
-plot1 + plot2 + plot_annotation(tag_levels = 'A')
-ggsave("Output/Distance_sex.png", width = 20, height = 13, units = "cm")
+#2020 vs 2021
+setwd("~/GitHub/Water_Chemistry")
+seasons <- read.csv("Input/2020.2021.csv")
+seasons
+
+#Ba
+kruskal.test(Ba ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Ba, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Ca
+kruskal.test(Ca ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Fe
+kruskal.test(Fe ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Fe, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Mg
+kruskal.test(Mg ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Mg, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Mn
+kruskal.test(Mn ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Mn, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Sr
+kruskal.test(Sr ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Sr, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Sr86.87
+kruskal.test(Sr.8687 ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Sr, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+#                             Bar Graphs                            #
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+
+#Now let's plot these bar graphs
+#Load the data
+setwd("~/GitHub/Water_Chemistry")
+reach.means <- read.csv("Input/Means.csv")
+head(reach.means)
+
+
+#Water Chemistry
+#Temperature
+temps <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Temperature.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Mean Temperature (C)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Temperature.Mean,
+                                        ymin = Temperature.Mean - Temperature.SD, 
+                                        ymax = Temperature.Mean + Temperature.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+temps
+
+#pH
+pH <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = pH.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "pH", title = "", fill = "", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = pH.Mean,
+                                        ymin = pH.Mean - pH.SD, 
+                                        ymax = pH.Mean + pH.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+pH
+
+#DO %
+do.perc <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = DO.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Dissolved Oxygen (%)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = DO.Mean,
+                                        ymin = DO.Mean - DO.SD, 
+                                        ymax = DO.Mean + DO.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+do.perc
   
+#DO mg/L
+do.mg <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = DO.mg.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Dissolved Oxygen (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = DO.mg.Mean,
+                                        ymin = DO.mg.Mean - DO.mg.SD, 
+                                        ymax = DO.mg.Mean + DO.mg.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+do.mg
 
-#--------------------------------------#
-# Loading Environmental Data & Plotting#
-#--------------------------------------#
-# CONDUCTIVTY & TEMPERATURE
-# Load environmental data
-# get average daily value & sd for temp and conductivity 
+#Conductivity
+cond <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Cond.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Conductivity (mS/cm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Cond.Mean,
+                                        ymin = Cond.Mean - Cond.SD, 
+                                        ymax = Cond.Mean + Cond.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+cond
 
-#CL01
-cond1 <- read.csv("Input/conductivity/CL01.csv")
-cond1$Date <- as.Date(cond1$Date, format = "%d/%m/%Y")
-cond1 <- cond1 %>%
-  group_by(Date) %>%
-  summarise(Temp.mean = mean(Temp, na.rm = TRUE),
-            Temp.sd = sd(Temp, na.rm = TRUE),
-            Cond.mean = mean(Cond, na.rm = TRUE),
-            Cond.sd = sd(Cond, na.rm = TRUE))
-cond1$Station <- "CT1"
-
-#CL06
-cond2 <- read.csv("Input/conductivity/CL06.csv")
-cond2$Date <- as.Date(cond2$Date, format = "%d/%m/%Y")
-cond2 <- cond2 %>%
-  group_by(Date) %>%
-  summarise(Temp.mean = mean(Temp, na.rm = TRUE),
-            Temp.sd = sd(Temp, na.rm = TRUE),
-            Cond.mean = mean(Cond, na.rm = TRUE),
-            Cond.sd = sd(Cond, na.rm = TRUE))
-cond2$Station <- "CT2"
-
-#CL09
-cond3 <- read.csv("Input/conductivity/CL09.csv")
-cond3$Date <- as.Date(cond3$Date, format = "%d/%m/%Y")
-cond3 <- cond3 %>%
-  group_by(Date) %>%
-  summarise(Temp.mean = mean(Temp, na.rm = TRUE),
-            Temp.sd = sd(Temp, na.rm = TRUE),
-            Cond.mean = mean(Cond, na.rm = TRUE),
-            Cond.sd = sd(Cond, na.rm = TRUE))
-cond3$Station <- "CT3"
-
-#CL13
-cond4 <- read.csv("Input/conductivity/CL13.csv")
-cond4$Date <- as.Date(cond4$Date, format = "%d/%m/%Y")
-cond4 <- cond4 %>%
-  group_by(Date) %>%
-  summarise(Temp.mean = mean(Temp, na.rm = TRUE),
-            Temp.sd = sd(Temp, na.rm = TRUE),
-            Cond.mean = mean(Cond, na.rm = TRUE),
-            Cond.sd = sd(Cond, na.rm = TRUE))
-cond4$Station <- "CT4"
-
-# Combine all conductivty averages into 1 file (using tidyverse)
-cond.tot <- rbind(cond1, cond2, cond3, cond4)
-summary(cond.tot)
-
-#Min/Max average temperature and conductivity in the study
-max(cond.tot$Temp.mean, na.rm = TRUE)
-min(cond.tot$Temp.mean, na.rm = TRUE)
-max(cond.tot$Cond.mean, na.rm = TRUE)
-min(cond.tot$Cond.mean, na.rm = TRUE)
-
-# plot water temperature total for all four stations on one plot
-plot1 <- ggplot() + theme_bw() +
-  geom_point(data = cond.tot, aes(x = Date, y = Temp.mean, colour = Station),
-    size = 0.9, alpha = 0.5) +
-  geom_line(data = cond.tot, aes(x = Date, y = Temp.mean, colour = Station),
-    lty = 'dashed', alpha = 0.5) +
-  geom_errorbar(data = cond.tot, aes(x = Date, colour = Station,
-                                       ymin = Temp.mean - Temp.sd, 
-                                       ymax = Temp.mean + Temp.sd), 
-  size = 0.2, width = 0, alpha = 0.5) +
-  labs(y = "Temperature (°C)", x = "") +
-  scale_x_date(limits = c(as.Date("2021-06-01"), as.Date("2022-06-01"))) +
-  scale_y_continuous(breaks = seq(12, 32, 2)) +
-  scale_colour_manual(values = cmocean('haline')(8)[c(1,3,5,7)])
-plot1
-
-# plot conductivity for all four stations on one plot
-plot2 <- ggplot() + theme_bw() +
-  geom_point(data = cond.tot, aes(x = Date, y = Cond.mean, colour = Station),
-    size = 0.9, alpha = 0.5) +
-  geom_line(data = cond.tot, aes(x = Date, y = Cond.mean, colour = Station),
-    lty = 'dashed', alpha = 0.5) +
-  geom_errorbar(data = cond.tot, aes(x = Date, colour = Station,
-                                       ymin = Cond.mean - Cond.sd, 
-                                       ymax = Cond.mean + Cond.sd), 
-  size = 0.2, width = 0, alpha = 0.5) +
-  labs(y = "Conductivity (mS/cm)", x = "") +
-  scale_x_date(limits = c(as.Date("2021-06-01"), as.Date("2022-06-01"))) +
-  scale_y_continuous(limits = c(0, 37)) +
-  scale_colour_manual(values = cmocean('haline')(8)[c(1,3,5,7)])
-plot2
-
-# RIVER FLOW
-
-# plot flow data
-#NOT WORKING
-flow <- read.csv("Input/Clarence.flow.csv")
-flow$Date <- as.Date(flow$Day, format = "%d/%m/%Y")
-
-plot3 <- ggplot() + theme_bw() +
-  geom_point(data = flow, aes(x = Date, y = Mean.Water.level..m.),
-    size = 0.9, alpha = 0.5) +
-  geom_line(data = flow, aes(x = Date, y = Mean.Water.level..m.),
-    lty = 'dashed', alpha = 0.5) +
-  geom_errorbar(data = flow, aes(x = Date, 
-                                       ymin = Min.Water.level..m., 
-                                       ymax = Max.Water.level..m.), 
-  size = 0.2, width = 0, alpha = 0.5) +
-  labs(y = "Water level (m)", x = "Date") +
-  scale_x_date(limits = c(as.Date("2021-06-01"), as.Date("2022-06-01"))) 
-plot3
-
-# Combine environmental plots same figure:
-plot1 / plot2 / plot3 + plot_annotation(tag_levels = 'A') + plot_layout(guides = "collect")
-ggsave("Output/Env_vars.png", width = 22, height = 17, units = "cm")
-
-
-#--------------------------------------#
-#                dBBMM                 #
-#--------------------------------------#
-
-# Import shapefile
-water <- loadShape(path = "Input/shapefile/", shape = "Clarence.shp", size = 0.0005, buffer = 0.2)
-
-# Load RSP output
-load("Input/rsp.results.RData")
-
-# Run daily dBBMM models (this function can take a couple of hours to run!)
-dbbmm.out <- calcAreas(input = rsp.run, base.raster = water, UTM = 56)
-write.csv(dbbmm.out, "Input/dBBMM_output.csv", row.names = FALSE)
+#Turbidity
+turb <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Turb.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Turbidity (NTU)", title = "", fill = "Reach", colour = "Reach") +
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) + 
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Turb.Mean,
+                                        ymin = Turb.Mean - Turb.SD, 
+                                        ymax = Turb.Mean + Turb.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+turb
 
 
 
+#Let's merge them all together
+temps + pH + do.perc + do.mg + cond + turb + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
+
+
+
+#and let's save it for the manuscript :) 
+ggsave("Output/Mean_plots_waterchem.png", width = 20, height = 13, units = "cm")  
+
+----------------------------------------------------------------------------------------------------------------------
+
+#Time for the Elemental Data 
+#Load the data
+setwd("~/GitHub/Water_Chemistry")
+reach.means <- read.csv("Input/Means.csv")
+head(reach.means)
+
+
+#Ba mean with SD per reach
+Ba.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Ba.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Barium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Ba.Mean,
+                                        ymin = Ba.Mean - Ba.SD, 
+                                        ymax = Ba.Mean + Ba.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Ba.avs
+
+#Ca mean with SD per reach
+Ca.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Calcium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Ca.Mean,
+                                        ymin = Ca.Mean - Ca.SD, 
+                                        ymax = Ca.Mean + Ca.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Ca.avs
+
+#Fe mean with SD per reach
+Fe.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Fe.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Iron (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Fe.Mean,
+                                        ymin = Fe.Mean - Fe.SD, 
+                                        ymax = Fe.Mean + Fe.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Fe.avs
+
+#Mn mean with SD per reach
+Mn.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Mn.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = " Manganese (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Mn.Mean,
+                                        ymin = Mn.Mean - Mn.SD, 
+                                        ymax = Mn.Mean + Mn.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Mn.avs
+
+#Mg mean with SD per reach
+Mg.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Mg.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Magnesium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Mg.Mean,
+                                        ymin = Mg.Mean - Mg.SD, 
+                                        ymax = Mg.Mean + Mg.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Mg.avs
+
+#Sr mean with SD per reach 
+Sr.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Sr.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Strontium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Sr.Mean,
+                                        ymin = Sr.Mean - Sr.SD, 
+                                        ymax = Sr.Mean + Sr.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Sr.avs
+
+#Let's merge them all together
+Ba.avs + Ca.avs + Fe.avs + Mn.avs + Mg.avs + Sr.avs + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
+
+#and let's save it for the manuscript :) 
+ggsave("Output/Mean_Plots_Elements.png", width = 20, height = 13, units = "cm")  
+
+#-------------------------------------#
+##    Isotopic Relationships plots   ##
+#-------------------------------------#
+
+#Ba:Ca vs Sr:Ca
+plot11 <- ggplot(new_element, aes(x=Sr.Ca, y=Ba.Ca, shape=Reach, color=Reach)) +
+  geom_point() + theme_bw()
+plot11
+
+#Sr86.87 vs Sr:Ca
+plot12 <- ggplot(new_element, aes(x=Sr.Ca, y=Sr87.86, shape=Reach, color=Reach)) +
+  geom_point() + theme_bw()
+plot12
+
+
+#Let's merge them all together
+plot11 + plot12 + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
+
+#and let's save it for the manuscript :) 
+ggsave("Output/IsotopeRelationships.png", width = 20, height = 13, units = "cm")
+
+#--------------------------#
+##    Isoscape Figures    ##
+#--------------------------#
+
+#Lets plot the isoscapes.. 
+
+#Up first.. the Water Chemistry Isoscapes
+
+#Temperature
+sf_use_s2(FALSE)
+Iso.Temp <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Temperature, fill = Temperature), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = c("#1252ED", "#12ED3F", "#EDAD12", "#Ed1224"),
+                         values = c(0, 0.10, 0.20, 0.30, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)) +
+  scale_fill_gradientn(colours = c("#1252ED", "#12ED3F", "#EDAD12", "#ED1224"),
+                         values = c(0, 0.10, 0.20, 0.30, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Temperature", colour = "Temperature") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Temp
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Temp.png", width = 20, height = 13, units = "cm")
+
+#pH
+sf_use_s2(FALSE)
+Iso.pH <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = pH, fill = pH), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = c("#1252ED", "#12ED3F", "#EDAD12", "#Ed1224"),
+                         values = c(0, 0.10, 0.20, 0.30, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)) +
+  scale_fill_gradientn(colours = c("#1252ED", "#12ED3F", "#EDAD12", "#ED1224"),
+                       values = c(0, 0.10, 0.20, 0.30, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)) +
+  labs(x = "Longitude", y = "Latitude", fill = "pH", colour = "pH") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.pH
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.pH.png", width = 20, height = 13, units = "cm")
+
+#DO %
+#ADD MORE COLOURS
+sf_use_s2(FALSE)
+Iso.DO.Perc <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = DO.., fill = DO..), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "DO..", colour = "DO..") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.DO.Perc
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.DO.png", width = 20, height = 13, units = "cm")
+
+#DO(mg/L)
+sf_use_s2(FALSE)
+Iso.DO.mgl <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = DO.mg.L, fill = DO.mg.L), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "DO.mg.L", colour = "DO.mg.L") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.DO.mgl
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.DO.mg.png", width = 20, height = 13, units = "cm")
+
+#Conductivity
+sf_use_s2(FALSE)
+Iso.Cond <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Conductivity..mS.cm., fill = Conductivity..mS.cm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Conductivity..mS.cm.", colour = "Conductivity..mS.cm.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Cond
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Cond.png", width = 20, height = 13, units = "cm")
+
+#Turbidity (NTU)
+sf_use_s2(FALSE)
+Iso.Turb <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Turbidity..NTU., fill = Turbidity..NTU.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Turbidity..NTU.", colour = "Turbidity..NTU.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Turb
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Turb.png", width = 20, height = 13, units = "cm")
+
+#Second up.. the Elemental Isoscapes
+
+#Ba
+Iso.Ba <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ba..ppm., fill = Ba..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Ba..ppm.", colour = "Ba..ppm.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Ba
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Ba.png", width = 20, height = 13, units = "cm")
+
+
+#Ca
+Iso.Ca <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ca..ppm., fill = Ca..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Ca..ppm.", colour = "Ca..ppm.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Ca
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Ca.png", width = 20, height = 13, units = "cm")
+
+
+#Fe
+Iso.Fe <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Fe..ppm., fill = Fe..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(8)) +
+  scale_fill_gradientn(colours = rainbow(8)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Fe..ppm.", colour = "Fe..ppm.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Fe
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Fe.png", width = 20, height = 13, units = "cm")
+
+
+#Mn
+Iso.Mn <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mn..ppm., fill = Mn..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(8)) +
+  scale_fill_gradientn(colours = rainbow(8)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Mn..ppm.", colour = "Mn..ppm.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Mn
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Mn.png", width = 20, height = 13, units = "cm")
+
+#Mg
+Iso.Mg <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mg..ppm., fill = Mg..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(8)) +
+  scale_fill_gradientn(colours = rainbow(8)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Mg..ppm.", colour = "Mg..ppm.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Mg
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Mg.png", width = 20, height = 13, units = "cm")
+
+#Sr
+Iso.Sr <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Sr..ppm., fill = Sr..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(8)) +
+  scale_fill_gradientn(colours = rainbow(8)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr..ppm", colour = "Sr..ppm") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Sr
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Sr.png", width = 20, height = 13, units = "cm")
+
+
+#Let's put these all together
+
+Iso.Ca + Iso.Mg  + Iso.Sr + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect'))
+
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscacpe.TraceElementsA.png", width = 20, height = 13, units = "cm")
+
+Iso.Ba + Iso.Fe + Iso.Mn + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect'))
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscacpe.TraceElementsB.png", width = 20, height = 13, units = "cm")
+
+#sr 87.86
+Iso.Sr.8786 <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Sr87.86, fill = Sr87.86), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(5)) +
+  scale_fill_gradientn(colours = rainbow(5)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr87.86", colour = "Sr87.86.") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Sr.8786
+
+ggsave("Output/Isoscape.Sr86.87.png", width = 20, height = 13, units = "cm")
 
