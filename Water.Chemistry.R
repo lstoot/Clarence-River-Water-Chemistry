@@ -16,7 +16,7 @@ library(dplyr)
 #--------------------------------------#
 
 #Let's load in the data
-setwd("~/GitHub/Water_Chemistry")
+setwd("~/GitHub/Water_Chemistry/")
 water <- read.csv("Input/Locations.csv")
 head(water)
 
@@ -153,20 +153,18 @@ ggsave("Output/Map_clarence_Figure1COMPLETE.png", width = 30, height = 23, units
 ##                    Let's do some actual stats                         ##
 #-------------------------------------------------------------------------#
 
-setwd("~/GitHub/Water_Chemistry")
-element <- read.csv("Input/WaterChem.Results.csv")
-element
+setwd("~/GitHub/Water_Chemistry/")
+new_element <- read.csv("Input/WaterChem.Results.csv", header = T)
+head(new_element)
 
-#Lets clean up the data
-#removes "na" columns
-new_element <- element[-c(63, 68, 78), ]
-new_element
+sapply(new_element, class)
 
-#changes columns to numeric
-i <- c(4:22)
+i <- c(6:24)
+
 new_element[ , i] <- apply(new_element[ , i], 2,            # Specify own function within apply
                     function(x) as.numeric(as.character(x)))
-sapply(new_element, class)
+
+sapply(new_element, class)  
 
 
 #Now lets get the means for all our variables by reach 
@@ -200,36 +198,28 @@ aggregate(new_element$Turbidity..NTU., list(new_element$Reach), FUN=sd)
 #Now for Elemental means & SDs
 
 #Ba ppm (Mean & SD)
-aggregate(new_element$Ba..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Ba..ppm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Ba, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Ba, list(new_element$Reach), FUN=sd)
 
 #Ca ppm (Mean & SD)
-aggregate(new_element$Ca..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Ca..ppm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Ca, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Ca, list(new_element$Reach), FUN=sd)
 
 #Fe ppm (Mean & SD)
-aggregate(new_element$Fe..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Fe..ppm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Fe, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Fe, list(new_element$Reach), FUN=sd)
 
 #Mn ppm (Mean & SD)
 aggregate(new_element$Mn..ppm., list(new_element$Reach), FUN=mean)
 aggregate(new_element$Mn..ppm., list(new_element$Reach), FUN=sd)
 
 #Mg ppm (Mean & SD)
-aggregate(new_element$Mg..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Mg..ppm., list(new_element$Reach), FUN=sd)
-
-#Pb ppm (Mean & SD)
-aggregate(new_element$Pb..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Pb..ppm., list(new_element$Reach), FUN=sd)
-
-#Se ppm (Mean & SD)
-aggregate(new_element$Se..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Se..ppm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Mg, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Mg, list(new_element$Reach), FUN=sd)
 
 #Sr ppm (Mean & SD)
-aggregate(new_element$Sr..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Sr..ppm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Sr, list(new_element$Reach), FUN=mean)
+aggregate(new_element$Sr, list(new_element$Reach), FUN=sd)
 
 #Ba/Ca ratio (Mean & SD)
 aggregate(new_element$Ba.Ca, list(new_element$Reach), FUN=mean)
@@ -287,41 +277,55 @@ kruskal.test(Turbidity..NTU. ~ Reach, data = new_element)
 pairwise.wilcox.test(new_element$Turbidity..NTU., new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 #Ba
-kruskal.test(Ba..ppm. ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$Ba..ppm, new_element$Reach,
+kruskal.test(Ba ~ Reach, data = new_element) 
+pairwise.wilcox.test(new_element$Ba, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 #Ca
-kruskal.test(Ca..ppm. ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Ca..ppm, new_element$Reach,
+kruskal.test(Ca. ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Ca, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 #Fe
-kruskal.test(Fe..ppm. ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Fe..ppm, new_element$Reach,
+kruskal.test(Fe ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Fe, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 #Mn
-kruskal.test(Mn..ppm. ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Mn..ppm, new_element$Reach,
+kruskal.test(Mn ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Mn, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 #Mg
-kruskal.test(Mg..ppm. ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Mg..ppm, new_element$Reach,
+kruskal.test(Mg ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Mg, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
-#Pb
-#kruskal.test(Pb..ppm. ~ Reach, data = new_element)
-#pairwise.wilcox.test(new_element$Pb..ppm, new_element$Reach,
-#                    p.adjust.method = "none", exact = FALSE)
-#Se
-#kruskal.test(Se..ppm. ~ Reach, data = new_element)
-#pairwise.wilcox.test(new_element$Se..ppm, new_element$Reach,
-#                     p.adjust.method = "none", exact = FALSE)
 #Sr
-kruskal.test(Sr..ppm. ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Sr..ppm, new_element$Reach,
+kruskal.test(Sr ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Sr, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 
 #Sr8687
 kruskal.test(Sr87.86 ~ Reach, data = new_element)
 pairwise.wilcox.test(new_element$Sr87.86, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+
+#Trace Element Ratios
+#Ba.Ca
+kruskal.test(Ba.Ca ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Ba.Ca, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Fe.Ca
+kruskal.test(Fe.Ca ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Fe.Ca, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Mg.Ca
+kruskal.test(Mg.Ca ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Mg.Ca, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Mn.Ca
+kruskal.test(Mn.Ca ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Mn.Ca, new_element$Reach,
+                     p.adjust.method = "none", exact = FALSE)
+#Sr.Ca
+kruskal.test(Sr.Ca ~ Reach, data = new_element)
+pairwise.wilcox.test(new_element$Sr.Ca, new_element$Reach,
                      p.adjust.method = "none", exact = FALSE)
 
 #2020 vs 2021
@@ -356,6 +360,26 @@ pairwise.wilcox.test(seasons$Sr, seasons$Year, p.adjust.method = "none", exact =
 #Sr86.87
 kruskal.test(Sr.8687 ~ Year, data = seasons) 
 pairwise.wilcox.test(seasons$Sr, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Ba.Ca
+kruskal.test(Ba.Ca ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Ba.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Fe.Ca
+kruskal.test(Fe.Ca ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Fe.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Mg.Ca
+kruskal.test(Mg.Ca ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Mg.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Mn.Ca
+kruskal.test(Mn.Ca ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Mn.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+
+#Sr.Ca
+kruskal.test(Sr.Ca ~ Year, data = seasons) 
+pairwise.wilcox.test(seasons$Sr.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 #                             Bar Graphs                            #
@@ -481,7 +505,7 @@ head(reach.means)
 #Ba mean with SD per reach
 Ba.avs <- ggplot() + theme_bw() +
   geom_point(data = reach.means, aes(x = Reach, y = Ba.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Barium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  labs(x = "Reach", y = "Barium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
@@ -496,7 +520,7 @@ Ba.avs
 #Ca mean with SD per reach
 Ca.avs <- ggplot() + theme_bw() +
   geom_point(data = reach.means, aes(x = Reach, y = Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Calcium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  labs(x = "Reach", y = "Calcium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
@@ -511,7 +535,7 @@ Ca.avs
 #Fe mean with SD per reach
 Fe.avs <- ggplot() + theme_bw() +
   geom_point(data = reach.means, aes(x = Reach, y = Fe.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Iron (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  labs(x = "Reach", y = "Iron (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
@@ -526,7 +550,7 @@ Fe.avs
 #Mn mean with SD per reach
 Mn.avs <- ggplot() + theme_bw() +
   geom_point(data = reach.means, aes(x = Reach, y = Mn.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = " Manganese (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  labs(x = "Reach", y = " Manganese (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
@@ -541,7 +565,7 @@ Mn.avs
 #Mg mean with SD per reach
 Mg.avs <- ggplot() + theme_bw() +
   geom_point(data = reach.means, aes(x = Reach, y = Mg.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Magnesium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  labs(x = "Reach", y = "Magnesium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
@@ -556,7 +580,7 @@ Mg.avs
 #Sr mean with SD per reach 
 Sr.avs <- ggplot() + theme_bw() +
   geom_point(data = reach.means, aes(x = Reach, y = Sr.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Strontium (ppm)", title = "", fill = "Reach", colour = "Reach") + 
+  labs(x = "Reach", y = "Strontium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
@@ -573,6 +597,97 @@ Ba.avs + Ca.avs + Fe.avs + Mn.avs + Mg.avs + Sr.avs + plot_annotation(tag_levels
 
 #and let's save it for the manuscript :) 
 ggsave("Output/Mean_Plots_Elements.png", width = 20, height = 13, units = "cm")  
+
+
+
+#Time for the Trace Element RATIOS
+#Load the data
+setwd("~/GitHub/Water_Chemistry")
+reach.means <- read.csv("Input/Means.csv")
+head(reach.means)
+
+
+#Ba.Ca mean with SD per reach
+Ba.Ca.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Ba.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Ba:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Ba.Ca.Mean,
+                                        ymin = Ba.Ca.Mean - Ba.Ca.SD, 
+                                        ymax = Ba.Ca.Mean + Ba.Ca.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Ba.Ca.avs
+
+
+#Fe.Ca mean with SD per reach
+Fe.Ca.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Fe.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Fe:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Fe.Ca.Mean,
+                                        ymin = Fe.Ca.Mean - Fe.Ca.SD, 
+                                        ymax = Fe.Ca.Mean + Fe.Ca.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Fe.Ca.avs
+
+#Mn.Ca mean with SD per reach
+Mn.Ca.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Mn.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = " Mn:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Mn.Ca.Mean,
+                                        ymin = Mn.Ca.Mean - Mn.Ca.SD, 
+                                        ymax = Mn.Ca.Mean + Mn.Ca.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Mn.Ca.avs
+
+#Mg.CA mean with SD per reach
+Mg.Ca.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Mg.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Mg:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Mg.Ca.Mean,
+                                        ymin = Mg.Ca.Mean - Mg.Ca.SD, 
+                                        ymax = Mg.Ca.Mean + Mg.Ca.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Mg.Ca.avs
+
+#Sr.Ca mean with SD per reach 
+Sr.Ca.avs <- ggplot() + theme_bw() +
+  geom_point(data = reach.means, aes(x = Reach, y = Sr.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Reach", y = "Sr:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = reach.means, aes(x = Reach, y = Sr.Ca.Mean,
+                                        ymin = Sr.Ca.Mean - Sr.Ca.SD, 
+                                        ymax = Sr.Ca.Mean + Sr.Ca.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Sr.Ca.avs
+
+#Let's merge them all together
+Ba.Ca.avs + Fe.Ca.avs + Mn.Ca.avs + Mg.Ca.avs + Sr.Ca.avs + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
+
+#and let's save it for the manuscript :) 
+ggsave("Output/Mean_Plots_TraceElementRatios.png", width = 20, height = 13, units = "cm")  
 
 #-------------------------------------#
 ##    Isotopic Relationships plots   ##
@@ -723,11 +838,11 @@ Iso.Ba <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ba..ppm., fill = Ba..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ba, fill = Ba), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Ba..ppm.", colour = "Ba..ppm.") +
+  labs(x = "Longitude", y = "Latitude", fill = "Ba", colour = "Ba") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -741,11 +856,11 @@ Iso.Ca <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ca..ppm., fill = Ca..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ca, fill = Ca), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Ca..ppm.", colour = "Ca..ppm.") +
+  labs(x = "Longitude", y = "Latitude", fill = "Ca", colour = "Ca") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -759,11 +874,11 @@ Iso.Fe <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Fe..ppm., fill = Fe..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Fe, fill = Fe), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(8)) +
   scale_fill_gradientn(colours = rainbow(8)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Fe..ppm.", colour = "Fe..ppm.") +
+  labs(x = "Longitude", y = "Latitude", fill = "Fe", colour = "Fe") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -777,11 +892,11 @@ Iso.Mn <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mn..ppm., fill = Mn..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mn, fill = Mn), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(8)) +
   scale_fill_gradientn(colours = rainbow(8)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Mn..ppm.", colour = "Mn..ppm.") +
+  labs(x = "Longitude", y = "Latitude", fill = "Mn", colour = "Mn") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -794,11 +909,11 @@ Iso.Mg <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mg..ppm., fill = Mg..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mg, fill = Mg), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(8)) +
   scale_fill_gradientn(colours = rainbow(8)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Mg..ppm.", colour = "Mg..ppm.") +
+  labs(x = "Longitude", y = "Latitude", fill = "Mg", colour = "Mg") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -811,11 +926,11 @@ Iso.Sr <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Sr..ppm., fill = Sr..ppm.), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Sr, fill = Sr), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(8)) +
   scale_fill_gradientn(colours = rainbow(8)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Sr..ppm", colour = "Sr..ppm") +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr", colour = "Sr") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -823,17 +938,6 @@ Iso.Sr
 #and let's save it for the manuscript :) 
 ggsave("Output/Isoscape.Sr.png", width = 20, height = 13, units = "cm")
 
-
-#Let's put these all together
-
-Iso.Ca + Iso.Mg  + Iso.Sr + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect'))
-
-#and let's save it for the manuscript :) 
-ggsave("Output/Isoscacpe.TraceElementsA.png", width = 20, height = 13, units = "cm")
-
-Iso.Ba + Iso.Fe + Iso.Mn + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect'))
-#and let's save it for the manuscript :) 
-ggsave("Output/Isoscacpe.TraceElementsB.png", width = 20, height = 13, units = "cm")
 
 #sr 87.86
 Iso.Sr.8786 <- ggplot() + theme_bw() +
@@ -844,7 +948,7 @@ Iso.Sr.8786 <- ggplot() + theme_bw() +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(5)) +
   scale_fill_gradientn(colours = rainbow(5)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Sr87.86", colour = "Sr87.86.") +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr87:86", colour = "Sr87:86") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
@@ -852,3 +956,107 @@ Iso.Sr.8786
 
 ggsave("Output/Isoscape.Sr86.87.png", width = 20, height = 13, units = "cm")
 
+#TESTsr 87.86
+TestIso.Sr.8786 <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Sr.Num, fill = Sr.Num), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(5)) +
+  scale_fill_gradientn(colours = rainbow(5)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr.Num") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+TestIso.Sr.8786
+
+ggsave("Output/Isoscape.SrNUM.png", width = 20, height = 13, units = "cm")
+
+
+#Lets do the trace element:Ca ratios as isoscapes to see if there is anything fancy and shit
+
+#Ba/Ca
+Iso.Ba.Ca <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Ba/Ca, fill = Ba/Ca), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Ba/Ca", colour = "Ba/Ca") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Ba.Ca
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Ba.Ca.png", width = 20, height = 13, units = "cm")
+
+#Fe/Ca
+Iso.Fe.Ca <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Fe/Ca, fill = Fe/Ca), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Fe/Ca", colour = "Fe/Ca") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Fe.Ca
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Fe.Ca.png", width = 20, height = 13, units = "cm")
+
+#Mg/Ca
+Iso.Mg.Ca <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mg/Ca, fill = Mg/Ca), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Mg/Ca", colour = "Mg/Ca") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Mg.Ca
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Mg.Ca.png", width = 20, height = 13, units = "cm")
+
+#Mn/Ca
+Iso.Mn.Ca <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Mn/Ca, fill = Mn/Ca), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Mn/Ca", colour = "Mn/Ca") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Mn.Ca
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Mn.Ca.png", width = 20, height = 13, units = "cm")
+
+#Sr/Ca
+Iso.Sr.Ca <- ggplot() + theme_bw() +
+  geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
+  geom_point(data = new_element, aes(x = Long, y = Lat, colour = Sr/Ca, fill = Sr/Ca), size = 2.0, pch = 21, stroke = 0.2) +
+  coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
+  scale_colour_gradientn(colours = rainbow(10)) +
+  scale_fill_gradientn(colours = rainbow(10)) +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr/Ca", colour = "Sr/Ca") +
+  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+                 box.fill = c("black", "white"), box.color = "black", st.color = "black",
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+Iso.Sr.Ca
+#and let's save it for the manuscript :) 
+ggsave("Output/Isoscape.Sr.Ca.png", width = 20, height = 13, units = "cm")
