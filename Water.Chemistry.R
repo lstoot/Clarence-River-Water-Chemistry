@@ -10,6 +10,9 @@ library(sf)
 library(ggsn)
 library(plotrix)
 library(dplyr)
+library(FSA)
+
+
 
 #------------------------------------- #
 # Pre-processing the data for Figure 1 #
@@ -21,7 +24,7 @@ water <- read.csv("Input/Locations.csv")
 head(water)
 
 # Reorder plotting order
-water$Reach <- factor(water$Reach, levels = c("Estuary - Lower Clarence", "Orara", "Mid - Clarence", "Mann - Nymboida", "Upper Clarence"))
+water$Zone <- factor(water$Zone, levels = c("Estuary - Lower Clarence", "Orara", "Clarence main stem", "Mann - Nymboida - Boyd", "Northern tributaries"))
 
 # Load catchment shapefile:
 catch <- st_read("Input/shapefile/MultiAttributeClarence.shp") # Use sf package (keep projection!)
@@ -53,16 +56,16 @@ plotA <- ggplot() + theme_bw() +
   geom_sf(data = catchrivers, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = lake, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
   geom_sf(data = sriv, fill = 'gray60', alpha = 0.4,  size = 0.07, colour = "black") +
-  geom_point(data = water, aes(x = Long, y = Lat, fill = Reach), size = 2.0, pch = 21, stroke = 0.2) +
+  geom_point(data = water, aes(x = Long, y = Lat, fill = Zone), size = 2.0, pch = 21, stroke = 0.2) +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) +
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
-  labs(x = "Longitude", y = "Latitude", fill = "Reach",
-       colour = "Reach") +
+  labs(x = "Longitude", y = "Latitude", fill = "Zone",
+       colour = "Zone") +
   guides(fill = guide_legend(ncol = 1)) +
-  ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
+  ggsn::scalebar(x.min = 153, x.max = 153.35, y.min = -30.30, y.max = -30.37, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
-                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
+                 dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.50, border.size = 0.3)
 plotA
 
 library(ozmaps) # create Australian map with clarence location
@@ -93,11 +96,11 @@ m2 #this is the Australia map with a rectangle around the area of interest
 # to merge the site map with the Australia map
 m3 <- ggdraw() +
   draw_plot(plotA) +
-  draw_plot(m2, x = 0.4315, y = 0.7655, width = 0.22, height = 0.22) + plot_annotation(plot_annotation(title = 'a'))
+  draw_plot(m2, x = 0.4545, y = 0.7675, width = 0.22, height = 0.22) + plot_annotation(plot_annotation(title = 'a'))
 m3
 
 #To save a copy of the map
-ggsave("Output/Map_clarence_watersamples.png", width = 20, height = 13, units = 'cm')
+ggsave("Output/Map_clarence_watersamples.png", width = 25, height = 17, units = 'cm')
 
 #--------------------------------------------------------------------------#
 #                               Geology                                    #
@@ -142,7 +145,7 @@ geoplot <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3) + plot_annotation(title = 'b')
 geoplot
 
-ggsave("Output/Map_clarence_Province.png", width = 20, height = 13, units = 'cm')
+ggsave("Output/Map_clarence_Province.png", width = 25, height = 17, units = 'cm')
 
 #Merging sampling locations (1a) and geology (1b)
 m3 + geoplot + plot_annotation(subtitle = 'a') + (plot_layout(guides = 'collect'))
@@ -167,166 +170,172 @@ new_element[ , i] <- apply(new_element[ , i], 2,            # Specify own functi
 sapply(new_element, class)  
 
 
-#Now lets get the means for all our variables by reach 
+#Now lets get the means for all our variables by zone
 ------------------------------------------------------
 #Basic Water Chemistry
 
 #Temperature (Mean & SD)
-aggregate(new_element$Temperature, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Temperature, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Temperature, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Temperature, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #pH (Mean & SD)
-aggregate(new_element$pH, list(new_element$Reach), FUN=mean)
-aggregate(new_element$pH, list(new_element$Reach), FUN=sd)
+aggregate(new_element$pH, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$pH, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #DO % (Mean & SD)
-aggregate(new_element$DO.., list(new_element$Reach), FUN=mean)
-aggregate(new_element$DO.., list(new_element$Reach), FUN=sd)
+aggregate(new_element$DO.., list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$DO.., list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #DO (mg/L) (Mean & SD)
-aggregate(new_element$DO.mg.L, list(new_element$Reach), FUN=mean)
-aggregate(new_element$DO.mg.L, list(new_element$Reach), FUN=sd)
+aggregate(new_element$DO.mg.L, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$DO.mg.L, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Conductivity (Mean & SD)
-aggregate(new_element$Conductivity..mS.cm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Conductivity..mS.cm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Conductivity..mS.cm., list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Conductivity..mS.cm., list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Turbidity (Mean & SD)
-aggregate(new_element$Turbidity..NTU., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Turbidity..NTU., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Turbidity..NTU., list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Turbidity..NTU., list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Now for Elemental means & SDs
 
 #Ba ppm (Mean & SD)
-aggregate(new_element$Ba, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Ba, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Ba, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Ba, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Ca ppm (Mean & SD)
-aggregate(new_element$Ca, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Ca, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Ca, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Ca, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Fe ppm (Mean & SD)
-aggregate(new_element$Fe, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Fe, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Fe, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Fe, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Mn ppm (Mean & SD)
-aggregate(new_element$Mn..ppm., list(new_element$Reach), FUN=mean)
-aggregate(new_element$Mn..ppm., list(new_element$Reach), FUN=sd)
+aggregate(new_element$Mn, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Mn, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Mg ppm (Mean & SD)
-aggregate(new_element$Mg, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Mg, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Mg, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Mg, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Sr ppm (Mean & SD)
-aggregate(new_element$Sr, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Sr, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Sr, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Sr, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Ba/Ca ratio (Mean & SD)
-aggregate(new_element$Ba.Ca, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Ba.Ca, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Ba.Ca, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Ba.Ca, list(new_element$Zone), FUN=sd, na.rm=TRUE)
+
+#Fe/Ca ratio (Mean & SD)
+aggregate(new_element$Fe.Ca, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Fe.Ca, list(new_element$Zone), FUN=sd, na.rm=TRUE)
+
+#Mn/Ca ratio (Mean & SD)
+aggregate(new_element$Mn.Ca, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Mn.Ca, list(new_element$Zone), FUN=sd, na.rm=TRUE)
+
+#Mg/Ca ratio (Mean & SD)
+aggregate(new_element$Mg.Ca, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Mg.Ca, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Sr/Ca ppm (Mean & SD)
-aggregate(new_element$Sr.Ca, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Sr.Ca, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Sr.Ca, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Sr.Ca, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 #Sr 86/87 (Mean & SD)
-aggregate(new_element$Sr87.86, list(new_element$Reach), FUN=mean)
-aggregate(new_element$Sr87.86, list(new_element$Reach), FUN=sd)
+aggregate(new_element$Sr87.86, list(new_element$Zone), FUN=mean, na.rm=TRUE)
+aggregate(new_element$Sr87.86, list(new_element$Zone), FUN=sd, na.rm=TRUE)
 
 
-#testshit
-library(dplyr)
-group_by(new_element, Reach) %>%
-  summarise(
-    count = n(),
-    mean = mean(Temperature, na.rm = TRUE),
-    sd = sd(Temperature, na.rm = TRUE),
-    median = median(Temperature, na.rm = TRUE),
-    IQR = IQR(Temperature, na.rm = TRUE)
-  )
-
-#Now let's see if the reaches are different!
+#Now let's see if the Zonees are different!
 #Kruskal-Wallis test - non-parametric one-way ANOVA test
-#Pair-wise Wilcoxon Test
+#Post hoc - Dunns
 
 # no need for a p-value adjustment because there is no repeated sampling (?)
 # exact = false fixes the "ties" issue and yields the same results.
 
+new_element$Zone = factor(new_element$Zone, levels = c("Estuary/Lower Clarence", "Orara", "Clarence main stem", "Mann - Nymboida - Boyd", "Northern tributaries"))
+
 #Temperature
-kruskal.test(Temperature ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$Temperature, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Temperature ~ Zone, data = new_element) 
+dunnTest(new_element$Temperature ~ new_element$Zone, data=new_element, method="none")
+
 #pH
-kruskal.test(pH ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$pH, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(pH ~ Zone, data = new_element) 
+dunnTest(new_element$pH ~ new_element$Zone, data=new_element, method="none")
+
 #Do %
-kruskal.test(DO.. ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$DO.., new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(DO.. ~ Zone, data = new_element) 
+dunnTest(new_element$DO.. ~ new_element$Zone, data=new_element, method="none")
+
 #DO (mg/L)
-kruskal.test(DO.mg.L ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$DO.mg.L, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(DO.mg.L ~ Zone, data = new_element) 
+dunnTest(new_element$DO.mg.L ~ new_element$Zone, data=new_element, method="none")
+
 #Conductivity
-kruskal.test(Conductivity..mS.cm. ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$Conductivity..mS.cm., new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Conductivity..mS.cm. ~ Zone, data = new_element) 
+dunnTest(new_element$Conductivity..mS.cm. ~ new_element$Zone, data=new_element, method="none")
+
 #Turbidity
-kruskal.test(Turbidity..NTU. ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$Turbidity..NTU., new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Turbidity..NTU. ~ Zone, data = new_element) 
+dunnTest(new_element$Turbidity..NTU. ~ new_element$Zone, data=new_element, method="none")
+
 #Ba
-kruskal.test(Ba ~ Reach, data = new_element) 
-pairwise.wilcox.test(new_element$Ba, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Ba ~ Zone, data = new_element) 
+dunnTest(new_element$Ba ~ new_element$Zone, data=new_element, method="none")
+
 #Ca
-kruskal.test(Ca. ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Ca, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Ca. ~ Zone, data = new_element)
+dunnTest(new_element$Ca ~ new_element$Zone, data=new_element, method="none")
+
 #Fe
-kruskal.test(Fe ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Fe, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Fe ~ Zone, data = new_element)
+dunnTest(new_element$Fe ~ new_element$Zone, data=new_element, method="none")
+
 #Mn
-kruskal.test(Mn ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Mn, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Mn ~ Zone, data = new_element)
+dunnTest(new_element$Mn ~ new_element$Zone, data=new_element, method="none")
+
 #Mg
-kruskal.test(Mg ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Mg, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Mg ~ Zone, data = new_element)
+dunnTest(new_element$Mg ~ new_element$Zone, data=new_element, method="none")
+
 #Sr
-kruskal.test(Sr ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Sr, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Sr ~ Zone, data = new_element)
+dunnTest(new_element$Sr ~ new_element$Zone, data=new_element, method="none")
+
 
 #Sr8687
-kruskal.test(Sr87.86 ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Sr87.86, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Sr87.86 ~ Zone, data = new_element)
+dunnTest(new_element$Sr87.86 ~ new_element$Zone, data=new_element, method="none")
 
-#Trace Element Ratios
+
+####                      ####
+###  Trace Element Ratios  ###
+####                      ####
+
+
 #Ba.Ca
-kruskal.test(Ba.Ca ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Ba.Ca, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Ba.Ca ~ Zone, data = new_element)
+dunnTest(new_element$Ba.Ca ~ new_element$Zone, data=new_element, method="none")
+
 #Fe.Ca
-kruskal.test(Fe.Ca ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Fe.Ca, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Fe.Ca ~ Zone, data = new_element)
+dunnTest(new_element$Fe.Ca ~ new_element$Zone, data=new_element, method="none")
+
 #Mg.Ca
-kruskal.test(Mg.Ca ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Mg.Ca, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Mg.Ca ~ Zone, data = new_element)
+dunnTest(new_element$Mg.Ca ~ new_element$Zone, data=new_element, method="none")
+
 #Mn.Ca
-kruskal.test(Mn.Ca ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Mn.Ca, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Mn.Ca ~ Zone, data = new_element)
+dunnTest(new_element$Mn.Ca ~ new_element$Zone, data=new_element, method="none")
+
 #Sr.Ca
-kruskal.test(Sr.Ca ~ Reach, data = new_element)
-pairwise.wilcox.test(new_element$Sr.Ca, new_element$Reach,
-                     p.adjust.method = "none", exact = FALSE)
+kruskal.test(Sr.Ca ~ Zone, data = new_element)
+dunnTest(new_element$Sr.Ca ~ new_element$Zone, data=new_element, method="none")
 
 #2020 vs 2021
 setwd("~/GitHub/Water_Chemistry")
@@ -334,52 +343,40 @@ seasons <- read.csv("Input/2020.2021.csv")
 seasons
 
 #Ba
-kruskal.test(Ba ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Ba, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Ba ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Ca
-kruskal.test(Ca ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Ca ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Fe
-kruskal.test(Fe ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Fe, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Fe ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Mg
-kruskal.test(Mg ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Mg, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Mg ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Mn
-kruskal.test(Mn ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Mn, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Mn ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Sr
-kruskal.test(Sr ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Sr, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Sr ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Sr86.87
-kruskal.test(Sr.8687 ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Sr, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Sr.8687 ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Ba.Ca
-kruskal.test(Ba.Ca ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Ba.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Ba.Ca ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Fe.Ca
-kruskal.test(Fe.Ca ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Fe.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Fe.Ca ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Mg.Ca
-kruskal.test(Mg.Ca ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Mg.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Mg.Ca ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Mn.Ca
-kruskal.test(Mn.Ca ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Mn.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Mn.Ca ~ seasons$Year, data = seasons, paired = TRUE)
 
 #Sr.Ca
-kruskal.test(Sr.Ca ~ Year, data = seasons) 
-pairwise.wilcox.test(seasons$Sr.Ca, seasons$Year, p.adjust.method = "none", exact = FALSE)
+wilcox.test(seasons$Sr.Ca ~ seasons$Year, data = seasons, paired = TRUE)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 #                             Bar Graphs                            #
@@ -388,21 +385,21 @@ pairwise.wilcox.test(seasons$Sr.Ca, seasons$Year, p.adjust.method = "none", exac
 #Now let's plot these bar graphs
 #Load the data
 setwd("~/GitHub/Water_Chemistry")
-reach.means <- read.csv("Input/Means.csv")
-head(reach.means)
+Zone.means <- read.csv("Input/Means.csv")
+head(Zone.means)
 
 
 #Water Chemistry
 #Temperature
 temps <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Temperature.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Mean Temperature (C)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Temperature.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Mean Temperature (C)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Temperature.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Temperature.Mean,
                                         ymin = Temperature.Mean - Temperature.SD, 
                                         ymax = Temperature.Mean + Temperature.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -410,14 +407,14 @@ temps
 
 #pH
 pH <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = pH.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "pH", title = "", fill = "", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = pH.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "pH", title = "", fill = "", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = pH.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = pH.Mean,
                                         ymin = pH.Mean - pH.SD, 
                                         ymax = pH.Mean + pH.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -425,14 +422,14 @@ pH
 
 #DO %
 do.perc <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = DO.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Dissolved Oxygen (%)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = DO.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Dissolved Oxygen (%)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = DO.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = DO.Mean,
                                         ymin = DO.Mean - DO.SD, 
                                         ymax = DO.Mean + DO.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -440,14 +437,14 @@ do.perc
   
 #DO mg/L
 do.mg <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = DO.mg.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Dissolved Oxygen (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = DO.mg.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Dissolved Oxygen (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = DO.mg.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = DO.mg.Mean,
                                         ymin = DO.mg.Mean - DO.mg.SD, 
                                         ymax = DO.mg.Mean + DO.mg.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -455,14 +452,14 @@ do.mg
 
 #Conductivity
 cond <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Cond.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Conductivity (mS/cm)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Cond.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Conductivity (mS/cm)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Cond.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Cond.Mean,
                                         ymin = Cond.Mean - Cond.SD, 
                                         ymax = Cond.Mean + Cond.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -470,14 +467,14 @@ cond
 
 #Turbidity
 turb <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Turb.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Turbidity (NTU)", title = "", fill = "Reach", colour = "Reach") +
+  geom_point(data = Zone.means, aes(x = Zone, y = Turb.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Turbidity (NTU)", title = "", fill = "Zone", colour = "Zone") +
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) + 
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Turb.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Turb.Mean,
                                         ymin = Turb.Mean - Turb.SD, 
                                         ymax = Turb.Mean + Turb.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -498,95 +495,95 @@ ggsave("Output/Mean_plots_waterchem.png", width = 20, height = 13, units = "cm")
 #Time for the Elemental Data 
 #Load the data
 setwd("~/GitHub/Water_Chemistry")
-reach.means <- read.csv("Input/Means.csv")
-head(reach.means)
+Zone.means <- read.csv("Input/Means.csv")
+head(Zone.means)
 
 
-#Ba mean with SD per reach
+#Ba mean with SD per Zone
 Ba.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Ba.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Barium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Ba.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Barium (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Ba.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Ba.Mean,
                                         ymin = Ba.Mean - Ba.SD, 
                                         ymax = Ba.Mean + Ba.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Ba.avs
 
-#Ca mean with SD per reach
+#Ca mean with SD per Zone
 Ca.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Calcium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Ca.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Calcium (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Ca.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Ca.Mean,
                                         ymin = Ca.Mean - Ca.SD, 
                                         ymax = Ca.Mean + Ca.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Ca.avs
 
-#Fe mean with SD per reach
+#Fe mean with SD per Zone
 Fe.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Fe.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Iron (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Fe.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Iron (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Fe.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Fe.Mean,
                                         ymin = Fe.Mean - Fe.SD, 
                                         ymax = Fe.Mean + Fe.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Fe.avs
 
-#Mn mean with SD per reach
+#Mn mean with SD per Zone
 Mn.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Mn.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = " Manganese (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Mn.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = " Manganese (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Mn.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Mn.Mean,
                                         ymin = Mn.Mean - Mn.SD, 
                                         ymax = Mn.Mean + Mn.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Mn.avs
 
-#Mg mean with SD per reach
+#Mg mean with SD per Zone
 Mg.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Mg.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Magnesium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Mg.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Magnesium (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Mg.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Mg.Mean,
                                         ymin = Mg.Mean - Mg.SD, 
                                         ymax = Mg.Mean + Mg.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Mg.avs
 
-#Sr mean with SD per reach 
+#Sr mean with SD per Zone 
 Sr.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Sr.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Strontium (mg/L)", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Sr.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Strontium (mg/L)", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Sr.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Sr.Mean,
                                         ymin = Sr.Mean - Sr.SD, 
                                         ymax = Sr.Mean + Sr.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
@@ -596,110 +593,127 @@ Sr.avs
 Ba.avs + Ca.avs + Fe.avs + Mn.avs + Mg.avs + Sr.avs + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
 
 #and let's save it for the manuscript :) 
-ggsave("Output/Mean_Plots_Elements.png", width = 20, height = 13, units = "cm")  
+ggsave("Output/Mean_Plots_Elements.png", width = 25, height = 17, units = "cm")  
 
 
 
 #Time for the Trace Element RATIOS
 #Load the data
 setwd("~/GitHub/Water_Chemistry")
-reach.means <- read.csv("Input/Means.csv")
-head(reach.means)
+Zone.means <- read.csv("Input/Means.csv")
+head(Zone.means)
 
 
-#Ba.Ca mean with SD per reach
+#Ba.Ca mean with SD per Zone
 Ba.Ca.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Ba.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Ba:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Ba.Ca.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Ba:Ca", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Ba.Ca.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Ba.Ca.Mean,
                                         ymin = Ba.Ca.Mean - Ba.Ca.SD, 
                                         ymax = Ba.Ca.Mean + Ba.Ca.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Ba.Ca.avs
 
 
-#Fe.Ca mean with SD per reach
+#Fe.Ca mean with SD per Zone
 Fe.Ca.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Fe.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Fe:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Fe.Ca.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Fe:Ca", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Fe.Ca.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Fe.Ca.Mean,
                                         ymin = Fe.Ca.Mean - Fe.Ca.SD, 
                                         ymax = Fe.Ca.Mean + Fe.Ca.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Fe.Ca.avs
 
-#Mn.Ca mean with SD per reach
+#Mn.Ca mean with SD per Zone
 Mn.Ca.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Mn.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = " Mn:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Mn.Ca.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = " Mn:Ca", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Mn.Ca.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Mn.Ca.Mean,
                                         ymin = Mn.Ca.Mean - Mn.Ca.SD, 
                                         ymax = Mn.Ca.Mean + Mn.Ca.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Mn.Ca.avs
 
-#Mg.CA mean with SD per reach
+#Mg.CA mean with SD per Zone
 Mg.Ca.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Mg.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Mg:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Mg.Ca.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Mg:Ca", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Mg.Ca.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Mg.Ca.Mean,
                                         ymin = Mg.Ca.Mean - Mg.Ca.SD, 
                                         ymax = Mg.Ca.Mean + Mg.Ca.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Mg.Ca.avs
 
-#Sr.Ca mean with SD per reach 
+#Sr.Ca mean with SD per Zone 
 Sr.Ca.avs <- ggplot() + theme_bw() +
-  geom_point(data = reach.means, aes(x = Reach, y = Sr.Ca.Mean, fill = Reach), size = 3.0, pch = 21, stroke = 0.2  ) +
-  labs(x = "Reach", y = "Sr:Ca", title = "", fill = "Reach", colour = "Reach") + 
+  geom_point(data = Zone.means, aes(x = Zone, y = Sr.Ca.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Sr:Ca", title = "", fill = "Zone", colour = "Zone") + 
   scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
   scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
   theme(axis.text.x = element_blank()) +
   theme(legend.text = element_text(size=9)) +
   theme(legend.title = element_text(size=9), legend.position = "bottom") +
-  geom_errorbar(data = reach.means, aes(x = Reach, y = Sr.Ca.Mean,
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Sr.Ca.Mean,
                                         ymin = Sr.Ca.Mean - Sr.Ca.SD, 
                                         ymax = Sr.Ca.Mean + Sr.Ca.SD), 
                 size = 0.2, width = 0.2, alpha = 0.5)
 Sr.Ca.avs
 
+#Sr.87.86 mean with SD per Zone
+Sr.87.86.avs <- ggplot() + theme_bw() +
+  geom_point(data = Zone.means, aes(x = Zone, y = Sr87.86.Mean, fill = Zone), size = 3.0, pch = 21, stroke = 0.2  ) +
+  labs(x = "Zone", y = "Sr87:Sr86", title = "", fill = "Zone", colour = "Zone") + 
+  scale_fill_manual(values = c(cmocean('phase')(6)[1:5])) +
+  scale_colour_manual(values = cmocean('thermal')(15)[1:5]) +
+  theme(axis.text.x = element_blank()) +
+  theme(legend.text = element_text(size=9)) +
+  theme(legend.title = element_text(size=9), legend.position = "bottom") +
+  geom_errorbar(data = Zone.means, aes(x = Zone, y = Sr87.86.Mean,
+                                       ymin = Sr87.86.Mean - Sr87.86.SD, 
+                                       ymax = Sr87.86.Mean + Sr87.86.SD), 
+                size = 0.2, width = 0.2, alpha = 0.5)
+Sr.87.86.avs
+
 #Let's merge them all together
-Ba.Ca.avs + Fe.Ca.avs + Mn.Ca.avs + Mg.Ca.avs + Sr.Ca.avs + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
+Ba.Ca.avs + Fe.Ca.avs + Mn.Ca.avs + Mg.Ca.avs + Sr.Ca.avs + Sr.87.86.avs + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
 
 #and let's save it for the manuscript :) 
-ggsave("Output/Mean_Plots_TraceElementRatios.png", width = 20, height = 13, units = "cm")  
+ggsave("Output/Mean_Plots_TraceElementRatios.png", width = 25, height = 17, units = "cm")  
 
 #-------------------------------------#
 ##    Isotopic Relationships plots   ##
 #-------------------------------------#
 
 #Ba:Ca vs Sr:Ca
-plot11 <- ggplot(new_element, aes(x=Sr.Ca, y=Ba.Ca, shape=Reach, color=Reach)) +
+plot11 <- ggplot(new_element, aes(x=Sr.Ca, y=Ba.Ca, shape=Zone, color=Zone)) + 
+  labs(x = "Sr:Ca", y = "Ba:Ca") +
   geom_point() + theme_bw()
 plot11
 
 #Sr86.87 vs Sr:Ca
-plot12 <- ggplot(new_element, aes(x=Sr.Ca, y=Sr87.86, shape=Reach, color=Reach)) +
+plot12 <- ggplot(new_element, aes(x=Sr.Ca, y=Sr87.86, shape=Zone, color=Zone)) + 
+  labs(x = "Sr:Ca", y = "Sr87:Sr86") +
   geom_point() + theme_bw()
 plot12
 
@@ -708,7 +722,7 @@ plot12
 plot11 + plot12 + plot_annotation(tag_levels = 'a') + (plot_layout(guides = 'collect')) & theme(legend.position = 'bottom')
 
 #and let's save it for the manuscript :) 
-ggsave("Output/IsotopeRelationships.png", width = 20, height = 13, units = "cm")
+ggsave("Output/IsotopeRelationships.png", width = 25, height = 17, units = "cm")
 
 #--------------------------#
 ##    Isoscape Figures    ##
@@ -736,7 +750,7 @@ Iso.Temp <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Temp
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Temp.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Temp.png", width = 25, height = 17, units = "cm")
 
 #pH
 sf_use_s2(FALSE)
@@ -756,7 +770,7 @@ Iso.pH <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.pH
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.pH.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.pH.png", width = 25, height = 17, units = "cm")
 
 #DO %
 #ADD MORE COLOURS
@@ -775,7 +789,7 @@ Iso.DO.Perc <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.DO.Perc
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.DO.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.DO.png", width = 25, height = 17, units = "cm")
 
 #DO(mg/L)
 sf_use_s2(FALSE)
@@ -793,7 +807,7 @@ Iso.DO.mgl <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.DO.mgl
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.DO.mg.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.DO.mg.png", width = 25, height = 17, units = "cm")
 
 #Conductivity
 sf_use_s2(FALSE)
@@ -811,7 +825,7 @@ Iso.Cond <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Cond
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Cond.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Cond.png", width = 25, height = 17, units = "cm")
 
 #Turbidity (NTU)
 sf_use_s2(FALSE)
@@ -829,7 +843,7 @@ Iso.Turb <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Turb
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Turb.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Turb.png", width = 25, height = 17, units = "cm")
 
 #Second up.. the Elemental Isoscapes
 
@@ -848,7 +862,7 @@ Iso.Ba <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Ba
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Ba.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Ba.png", width = 25, height = 17, units = "cm")
 
 
 #Ca
@@ -866,7 +880,7 @@ Iso.Ca <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Ca
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Ca.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Ca.png", width = 25, height = 17, units = "cm")
 
 
 #Fe
@@ -884,7 +898,7 @@ Iso.Fe <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Fe
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Fe.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Fe.png", width = 25, height = 17, units = "cm")
 
 
 #Mn
@@ -902,7 +916,7 @@ Iso.Mn <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Mn
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Mn.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Mn.png", width = 25, height = 17, units = "cm")
 
 #Mg
 Iso.Mg <- ggplot() + theme_bw() +
@@ -919,7 +933,7 @@ Iso.Mg <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Mg
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Mg.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Mg.png", width = 25, height = 17, units = "cm")
 
 #Sr
 Iso.Sr <- ggplot() + theme_bw() +
@@ -936,7 +950,7 @@ Iso.Sr <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Sr
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Sr.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Sr.png", width = 25, height = 17, units = "cm")
 
 
 #sr 87.86
@@ -954,7 +968,7 @@ Iso.Sr.8786 <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Sr.8786
 
-ggsave("Output/Isoscape.Sr86.87.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Sr86.87.png", width = 25, height = 17, units = "cm")
 
 #TESTsr 87.86
 TestIso.Sr.8786 <- ggplot() + theme_bw() +
@@ -971,7 +985,7 @@ TestIso.Sr.8786 <- ggplot() + theme_bw() +
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 TestIso.Sr.8786
 
-ggsave("Output/Isoscape.SrNUM.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.SrNUM.png", width = 25, height = 17, units = "cm")
 
 
 #Lets do the trace element:Ca ratios as isoscapes to see if there is anything fancy and shit
@@ -985,13 +999,13 @@ Iso.Ba.Ca <- ggplot() + theme_bw() +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Ba/Ca", colour = "Ba/Ca") +
+  labs(x = "Longitude", y = "Latitude", fill = "Ba:Ca", colour = "Ba:Ca") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Ba.Ca
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Ba.Ca.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Ba.Ca.png", width = 25, height = 17, units = "cm")
 
 #Fe/Ca
 Iso.Fe.Ca <- ggplot() + theme_bw() +
@@ -1002,13 +1016,13 @@ Iso.Fe.Ca <- ggplot() + theme_bw() +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Fe/Ca", colour = "Fe/Ca") +
+  labs(x = "Longitude", y = "Latitude", fill = "Fe:Ca", colour = "Fe:Ca") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Fe.Ca
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Fe.Ca.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Fe.Ca.png", width = 25, height = 17, units = "cm")
 
 #Mg/Ca
 Iso.Mg.Ca <- ggplot() + theme_bw() +
@@ -1019,13 +1033,13 @@ Iso.Mg.Ca <- ggplot() + theme_bw() +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Mg/Ca", colour = "Mg/Ca") +
+  labs(x = "Longitude", y = "Latitude", fill = "Mg:Ca", colour = "Mg:Ca") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Mg.Ca
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Mg.Ca.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Mg.Ca.png", width = 25, height = 17, units = "cm")
 
 #Mn/Ca
 Iso.Mn.Ca <- ggplot() + theme_bw() +
@@ -1036,13 +1050,13 @@ Iso.Mn.Ca <- ggplot() + theme_bw() +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Mn/Ca", colour = "Mn/Ca") +
+  labs(x = "Longitude", y = "Latitude", fill = "Mn:Ca", colour = "Mn:Ca") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Mn.Ca
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Mn.Ca.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Mn.Ca.png", width = 25, height = 17, units = "cm")
 
 #Sr/Ca
 Iso.Sr.Ca <- ggplot() + theme_bw() +
@@ -1053,10 +1067,10 @@ Iso.Sr.Ca <- ggplot() + theme_bw() +
   coord_sf(xlim = c(151.65, 153.5), ylim = c(-28.25, -30.5), expand = FALSE) + 
   scale_colour_gradientn(colours = rainbow(10)) +
   scale_fill_gradientn(colours = rainbow(10)) +
-  labs(x = "Longitude", y = "Latitude", fill = "Sr/Ca", colour = "Sr/Ca") +
+  labs(x = "Longitude", y = "Latitude", fill = "Sr:Ca", colour = "Sr:Ca") +
   ggsn::scalebar(x.min = 153, x.max = 153.3, y.min = -30.30, y.max = -30.35, transform = TRUE, 
                  box.fill = c("black", "white"), box.color = "black", st.color = "black",
                  dist_unit = "km", dist = 10, st.dist = 1.0, st.size = 3, height = 0.30, border.size = 0.3)
 Iso.Sr.Ca
 #and let's save it for the manuscript :) 
-ggsave("Output/Isoscape.Sr.Ca.png", width = 20, height = 13, units = "cm")
+ggsave("Output/Isoscape.Sr.Ca.png", width = 25, height = 17, units = "cm")

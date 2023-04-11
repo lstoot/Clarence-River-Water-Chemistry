@@ -1,58 +1,58 @@
-Site,Reach,Long,Lat
-Aberfoyle A,Mann - Nymboida,152.015336,-30.252902
-Aberfoyle B,Mann - Nymboida,151.776936,-30.190167
-Bielsdown B,Mann - Nymboida,152.657556,-30.357375
-Bielsdown A,Mann - Nymboida,152.701043,-30.29536
-Blicks A,Mann - Nymboida,152.545048,-30.194103
-Blicks B,Mann - Nymboida,152.375622,-30.289412
-Bobo A,Mann - Nymboida,152.830617,-30.222619
-Bobo B,Mann - Nymboida,152.848701,30.247581
-Boonoo Boonoo A,Upper Clarence,152.254431,-28.66067
-Boonoo Boonoo B,Upper Clarence,152.103864,-28.87931
-Boyd A,Mann - Nymboida,152.555109,-29.852557
-Boyd B,Mann - Nymboida,152.455454,-29.866097
+Site,Zone,Long,Lat
+Aberfoyle A,Mann - Nymboida - Boyd,152.015336,-30.252902
+Aberfoyle B,Mann - Nymboida - Boyd,151.776936,-30.190167
+Bielsdown B,Mann - Nymboida - Boyd,152.657556,-30.357375
+Bielsdown A,Mann - Nymboida - Boyd,152.701043,-30.29536
+Blicks A,Mann - Nymboida - Boyd,152.545048,-30.194103
+Blicks B,Mann - Nymboida - Boyd,152.375622,-30.289412
+Bobo A,Mann - Nymboida - Boyd,152.830617,-30.222619
+Bobo B,Mann - Nymboida - Boyd,152.848701,30.247581
+Boonoo Boonoo A,Northern tributaries,152.254431,-28.66067
+Boonoo Boonoo B,Northern tributaries,152.103864,-28.87931
+Boyd A,Mann - Nymboida - Boyd,152.555109,-29.852557
+Boyd B,Mann - Nymboida - Boyd,152.455454,-29.866097
 Broadwater Creek,Estuary - Lower Clarence,153.085152,-29.427062
 Brushgrove/South Arm,Estuary - Lower Clarence,153.077333,-29.567679
-Cataract B,Upper Clarence,152.244723,-28.918119
-Cataract D,Mid - Clarence,152.123054,-29.09462
+Cataract B,Northern tributaries,152.244723,-28.918119
+Cataract D,Northern tributaries,152.123054,-29.09462
 Clarence A,Estuary - Lower Clarence,153.240999,-29.430173
 Clarence B,Estuary - Lower Clarence,152.942121,-29.69775
-Clarence C,Mid - Clarence,152.671464,-29.544833
-Clarence D,Mid - Clarence,152.536324,-29.332591
-Clarence E,Mid - Clarence,152.577125,-29.040908
-Clarence F,Upper Clarence,152.565318,-28.88562
-Clarence G,Upper Clarence,152.407526,-28.721901
+Clarence C,Clarence main stem,152.671464,-29.544833
+Clarence D,Clarence main stem,152.536324,-29.332591
+Clarence E,Clarence main stem,152.577125,-29.040908
+Clarence F,Northern tributaries,152.565318,-28.88562
+Clarence G,Northern tributaries,152.407526,-28.721901
 Coldstream A,Estuary - Lower Clarence,153.0925,-29.6535
 Coldstream B,Estuary - Lower Clarence,153.0937,-29.7658
 Copmanhurst,Estuary - Lower Clarence,152.783456,-29.591085
 Esk A,Estuary - Lower Clarence,153.317894,-29.353558
-Guy Fawkes A,Mann - Nymboida,152.347525,-30.40407
-Guy Fawkes B,Mann - Nymboida,152.37325,-30.396705
-Henry A,Mann - Nymboida,152.251914,-29.75338
+Guy Fawkes A,Mann - Nymboida - Boyd,152.347525,-30.40407
+Guy Fawkes B,Mann - Nymboida - Boyd,152.37325,-30.396705
+Henry A,Mann - Nymboida - Boyd,152.251914,-29.75338
 Junction Hill,Estuary - Lower Clarence,152.913476,-29.633697
-Koreelah A,Upper Clarence,152.282452,-28.628377
-Koreelah C,Upper Clarence,152.383672,-28.435011
-Koreelah D,Upper Clarence,152.451536,-28.343489
+Koreelah A,Northern tributaries,152.282452,-28.628377
+Koreelah C,Northern tributaries,152.383672,-28.435011
+Koreelah D,Northern tributaries,152.451536,-28.343489
 Lawrence,Estuary - Lower Clarence,153.100971,-29.501663
-Little Murray A,Mann - Nymboida,152.6497,-30.2705
-Little Murray B,Mann - Nymboida,152.635218,-30.324813
-Little Murray C,Mann - Nymboida,152.565023,-30.383357
-Little Nymboida B,Mann - Nymboida,152.901947,-30.212723
+Little Murray A,Mann - Nymboida - Boyd,152.6497,-30.2705
+Little Murray B,Mann - Nymboida - Boyd,152.635218,-30.324813
+Little Murray C,Mann - Nymboida - Boyd,152.565023,-30.383357
+Little Nymboida B,Mann - Nymboida - Boyd,152.901947,-30.212723
 Maclean,Estuary - Lower Clarence,153.195982,-29.457874
-Mann A,Mann - Nymboida,152.493317,-29.450877
-Mann B,Mann - Nymboida,152.554761,-29.577126
-Mann D,Mann - Nymboida,152.108444,-29.693454
-Mann F,Mann - Nymboida,151.827257,-29.760704
-Mann G,Mann - Nymboida,151.781257,-29.929581
-Maryland A,Upper Clarence,152.285589,-28.632567
-Maryland B,Upper Clarence,152.25443,-28.640972
-Maryland C,Upper Clarence,152.198839,-28.46616
-Maryland D,Upper Clarence,152.114639,-28.54948
+Mann A,Mann - Nymboida - Boyd,152.493317,-29.450877
+Mann B,Mann - Nymboida - Boyd,152.554761,-29.577126
+Mann D,Mann - Nymboida - Boyd,152.108444,-29.693454
+Mann F,Mann - Nymboida - Boyd,151.827257,-29.760704
+Mann G,Mann - Nymboida - Boyd,151.781257,-29.929581
+Maryland A,Northern tributaries,152.285589,-28.632567
+Maryland B,Northern tributaries,152.25443,-28.640972
+Maryland C,Northern tributaries,152.198839,-28.46616
+Maryland D,Northern tributaries,152.114639,-28.54948
 North Arm ,Estuary - Lower Clarence,153.235299,-29.378077
-Nymboida B,Mann - Nymboida,152.58849,-29.834201
-Nymboida C,Mann - Nymboida,152.724936,-29.979139
-Nymboida D,Mann - Nymboida,152.6376,-30.252
-Nymboida E,Mann - Nymboida,152.477018,-30.349253
+Nymboida B,Mann - Nymboida - Boyd,152.58849,-29.834201
+Nymboida C,Mann - Nymboida - Boyd,152.724936,-29.979139
+Nymboida D,Mann - Nymboida - Boyd,152.6376,-30.252
+Nymboida E,Mann - Nymboida - Boyd,152.477018,-30.349253
 Old Ferry Crossing,Estuary - Lower Clarence,153.345445,-29.38293
 Orara A,Orara,152.798543,-29.649541
 Orara B,Orara,152.9153,-29.8156
@@ -61,19 +61,19 @@ Orara E,Orara,153.0161,-30.221
 Oyster Channel,Estuary - Lower Clarence,153.329739,-29.453042
 Palmers Channel,Estuary - Lower Clarence,153.268598,-29.44943
 Palmers Island,Estuary - Lower Clarence,153.284353,-29.390118
-Sara A,Mann - Nymboida,152.024545,-30.006753
-Sara B,Mann - Nymboida,151.853066,-30.012103
+Sara A,Mann - Nymboida - Boyd,152.024545,-30.006753
+Sara B,Mann - Nymboida - Boyd,151.853066,-30.012103
 Sportsmans A,Estuary - Lower Clarence,153.076001,-29.492538
 Sportsmans B,Estuary - Lower Clarence,152.982268,-29.465673
-Timbarra A,Upper Clarence,152.532878,-28.899025
-Timbarra B,Mid - Clarence,152.330152,-29.186602
-Timbarra C,Mid - Clarence,152.132974,-29.553804
-Tooloom A,Upper Clarence,152.421333,-28.621462
-Tooloom B,Upper Clarence,152.471336,-28.519636
-Tooloom C,Upper Clarence,152.606125,-28.388163
+Timbarra A,Northern tributaries,152.532878,-28.899025
+Timbarra B,Northern tributaries,152.330152,-29.186602
+Timbarra C,Northern tributaries,152.132974,-29.553804
+Tooloom A,Northern tributaries,152.421333,-28.621462
+Tooloom B,Northern tributaries,152.471336,-28.519636
+Tooloom C,Northern tributaries,152.606125,-28.388163
 Ulmarra,Estuary - Lower Clarence,153.027688,-29.630354
 Wooloweyah Lake,Estuary - Lower Clarence,153.339526,-29.480377
 Yamba Breakwater,Estuary - Lower Clarence,153.365419,-29.427984
 Yamba/Oyster Channel,Estuary - Lower Clarence,153.31894,-29.421983
-Yarrow A,Mann - Nymboida,151.99035,-29.801386
-Yarrow B,Mann - Nymboida,151.873657,-29.922998
+Yarrow A,Mann - Nymboida - Boyd,151.99035,-29.801386
+Yarrow B,Mann - Nymboida - Boyd,151.873657,-29.922998
